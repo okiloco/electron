@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width">
+		<script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
+			<script src="./lib/jquery.min.js"></script>  
+ 		<script>if (window.module) module = window.module;</script>
+    </head>
+    <body>
+ 
+    <div id="gamepadPrompt"></div>
+    <div id="gamepadDisplay"></div>
+ 
+    <script>
+      const alertOnlineStatus = () => {
+      	canGame();
+        console.log(navigator.onLine ? 'online' : 'offline')
+      }
+
+      window.addEventListener('online',  alertOnlineStatus)
+      window.addEventListener('offline',  alertOnlineStatus)
+      window.addEventListener('gamepadconnected',function(){
+      	repGP = window.setInterval(reportOnGamepad,100);
+      })
+      alertOnlineStatus()
+      function canGame() {
+         return "getGamepads" in navigator;
+      }
+      function reportOnGamepad() {
+	      var gp = navigator.getGamepads()[0];
+	      var html = "";
+	          html += "id: "+gp.id+"<br/>";
+
+	      for(var i=0;i<gp.buttons.length;i++) {
+	          html+= "Button "+(i+1)+": ";
+	          if(gp.buttons[i].pressed) html+= " pressed";
+	          html+= "<br/>";
+	      }
+
+	      for(var i=0;i<gp.axes.length; i+=2) {
+	          html+= "Stick "+(Math.ceil(i/2)+1)+": "+gp.axes[i]+","+gp.axes[i+1]+"<br/>";
+	      }
+	      //console.log(html);
+	      $("#gamepadDisplay").html(html);
+      }
+
+      function get(){
+
+        var jqxhr = $.get("http://localhost:9001/play", function() {
+          alert( "success" );
+        })
+        .done(function() {
+          alert( "done" );
+        })
+        .fail(function() {
+          alert( "error" );
+        })
+        .always(function() {
+          alert( "finished" );
+        });
+      }
+    </script>
+
+    <button onclick="get()">Get</button>
+    </body>
+</html>

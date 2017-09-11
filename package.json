@@ -1,0 +1,55 @@
+{
+  "name": "IpCam",
+  "version": "0.1.0",
+  "main": "./index.js",
+  "devDependencies": {
+    "electron": "latest",
+    "electron-builder": "^19.27.3"
+  },
+  "homepage":"./index.html",
+  "dependencies": {
+   
+  },
+  "scripts": {
+    "start": "electron .",
+    "pack": "build --dir",
+    "dist":"build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject",
+    "electron": "electron ."
+  },
+  "author":{
+    "name":"Fabian Vargas",
+    "email":"f_varga@hotmail.com"
+   },
+  "description": "IpCam Desktop",
+  "license":"MIT",
+  "build": {
+	  "appId": "enupal-electronv1",
+	  "asar": true,
+	  "dmg": {
+	    "contents": [
+	      {
+	        "x": 110,
+	        "y": 150
+	      },
+	      {
+	        "x": 240,
+	        "y": 150,
+	        "type": "link",
+	        "path": "/Applications"
+	      }
+	    ]
+	  },
+	  "linux": {
+	    "target": [
+	      "AppImage",
+	      "deb"
+	    ]
+	  },
+	  "win": {
+	    "target": "NSIS",
+	    "icon": "build/icon.ico"
+	  }
+	}
+}
