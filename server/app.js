@@ -2,9 +2,6 @@ const express =require('express');
 var md5 = require("md5");
 var fs = require("fs");
 var path = require("path");
-var remote = require('remote');
-const main = remote.require('../index.js');
-
 /*var Model = require("./models/Model");
 const db = new Model({
 	dbname:'falcon-db'
@@ -33,13 +30,14 @@ app.use(session({
 //Conectarse a base de datos
 const ManagerDB = require("./js/ManagerDB");
 const db = ManagerDB.createManagerDB({
-	dbname:'falcon-db'
+	// dbname:'falcon-db'
+	dbname:'canguro-app'
 });
 
 
 app.use("/public",express.static("public"));
 app.use("/controllers",express.static("controllers"));
-// app.use("/app",session_middleware);
+app.use("/app",session_middleware);
 app.use("/app",routes(app,db));
 
 var port = process.env.PORT || 3000;
@@ -53,7 +51,7 @@ db.connect((err,res)=>{
 			route = require('./controllers/'+file);
 			route.controller(app,db);
 		});
-		console.log(main.canGame());
+		
 	  	console.log("Arranco el Server localhost:"+port);
     });
 });

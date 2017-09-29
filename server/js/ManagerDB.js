@@ -51,6 +51,7 @@ ManagerDB.prototype.login = function(params,callback){
 	var schema = this.getModel("schema");
 	schema.findOne({"name":"user"},function(err,doc){
 		
+		if(!doc) throw "No existe esquema user";
 		self.createSchema(doc.name,doc.config,function(err,schema){
 			var model = self.createModel(schema.name,schema);
 			model.findOne(params,function(err,user){
@@ -108,6 +109,7 @@ ManagerDB.prototype.createSchema = function(name,options,callback){
 		
 		model.findOne({"name":name},function(err,doc){
 			if(!doc){
+				//Crear Schema en base de datos
 				self.create({
 					name:"schema", 
 					options:{"name":name,"config":JSON.stringify(options)}
@@ -180,7 +182,8 @@ ManagerDB.prototype.insert = function({name,values},callback){
 
 	var self = this;
  	var model = this.getModel(name);
- 	model.insert(values,function(){
+ 	model.insert(values,function(err){
+ 		cosole.log(err)
 	 	if(callback!=undefined){
 		 	callback(instance,model);
 	 	}
@@ -216,27 +219,37 @@ ManagerDB.prototype.connect =  async function(callback) {
 			console.log('Error al conectarse a la base de datos.',err);
 			return;
 		}
-		console.log("conexión exitosa.");
+		console.log("conexión exitosa. ",self.linkconex);
 		//Crear el Esquema principal de la base de datos, que contiene todos los esquemas.
 		self.createSchema("schema",{name:"String", config:"String"},function(err,schema){
+
 			var model = self.createModel(schema.name,schema);
 			//cargar Schemas de la base de Datos y generar Modelos
 			model.find(function(err,docs){
 				var c =1;
-				docs.forEach(function (doc) {
 
-					self.createSchema(doc.name,doc.config,function(err,sch){
-						self.createModel(doc.name,sch,function(m){
-							if(c==docs.length){
-								self.emit("ready",err,res);
-								if(callback!=undefined){
-									callback(err,res);
+				console.log(docs)
+				if(docs.length>0)
+				{
+					docs.forEach(function (doc) {
+
+						self.createSchema(doc.name,doc.config,function(err,sch){
+							self.createModel(doc.name,sch,function(m){
+								if(c==docs.length){
+									self.emit("ready",err,res);
+									if(callback!=undefined){
+										callback(err,res);
+									}
 								}
-							}
-							c++;
+								c++;
+							});
 						});
 					});
-				});
+				}else{
+					if(callback!=undefined){
+						callback(err,res);
+					}
+				}
 			});
 		});
 	});
