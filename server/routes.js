@@ -142,13 +142,6 @@ module.exports = function(app,db){
 	//Users
 	router.route("/users").get(function(req,res){
 
-		/*Post.find({})
-		           .populate('postedBy')
-		           .populate('comments.postedBy')
-		           .exec(function(error, posts) {
-		               console.log(JSON.stringify(posts, null, "\t"))
-		           })
-		*/
 		db.user.find({})
 		.populate('usergroup')
 		.exec(function(err,data){

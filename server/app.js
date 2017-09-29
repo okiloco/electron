@@ -30,8 +30,7 @@ app.use(session({
 //Conectarse a base de datos
 const ManagerDB = require("./js/ManagerDB");
 const db = ManagerDB.createManagerDB({
-	// dbname:'falcon-db'
-	dbname:'canguro-app'
+	active_group:'default'
 });
 
 
@@ -41,8 +40,9 @@ app.use("/app",session_middleware);
 app.use("/app",routes(app,db));
 
 var port = process.env.PORT || 3000;
-db.connect((err,res)=>{
-	if(err) throw err;
+db.connect((err,schema)=>{
+	console.log(">1",err,schema.name);
+	
 	app.listen(port,function(){
 		
 		//Cargar Controladores 
@@ -51,7 +51,7 @@ db.connect((err,res)=>{
 			route = require('./controllers/'+file);
 			route.controller(app,db);
 		});
-		
+
 	  	console.log("Arranco el Server localhost:"+port);
     });
 });

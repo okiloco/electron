@@ -4,23 +4,27 @@ module.exports.controller = function(app,db){
 
 	app.get("/login",function(req,res){
 
-		if(req.query.username!=undefined){
-			
-			db.login({
+		if(!db.user){
+			res.send(JSON.stringify({
+				success:false,
+				msg:'No se ha creado el esquema user <br>Contacte con el administrador.'
+			}));
+		}else{
+
+			db.user.findOne({
 				"username":req.query.username,
 				"password":md5(req.query.password)
-			},function(err,user){
-				if(err) res.send(err);
-
-				req.session.user_id =user._id;
+			},'_id username usergroup')
+			.populate('usergroup')
+			.exec(function(err,user){
+				if(user!=null){req.session.user_id =user._id;}
 				res.send(JSON.stringify({
-					success:true,
-					user_id:user._id
+					success:(user!=null),
+					msg:(user!=null)?'Acceso permitido.':'Usuario o contraseña son inválidos.',
+					user
 				}));
 			});
-		}else{
-			res.send("Debe iniciar session.");
-		}
+		};		
 	});
 
 	app.get("/logout",function(req,res){

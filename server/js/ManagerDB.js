@@ -9,17 +9,20 @@ var md5 = require('md5');
 mongoose.Promise = global.Promise;
 var ObjectId = mongoose.Types.ObjectId;
 var Schema = mongoose.Schema;
+var config = require("./config");
 exports.createManagerDB = function(options,callback) {
   return new ManagerDB(options,callback);
 };
 function ManagerDB(options){
 
 	//"mongodb://localhost:27017/canguro-app"
+	this.active_group = config[options.active_group];
 	this.models = {};
 	this.schemas = {};
-	this.dbname = options.dbname;
-	this.host = options.host || 'localhost';
-	this.port = options.port || '27017';
+	this.dbname = this.active_group.dbname;
+
+	this.host = this.active_group.host;
+	this.port = this.active_group.port;
 
 	this.linkconex = "mongodb://"+this.host+':'+this.port+'/'+this.dbname;
 	this.conn = mongoose.connection;
@@ -33,6 +36,7 @@ function Model(name,schema){
 	model["diHola"] =  function(){
 		console.log("Hola este es un metodo personalizado del modelo.");
 	};
+
 	return model;
 }
 
@@ -47,29 +51,54 @@ ManagerDB.prototype.disconnect = function(callback) {
 
 ManagerDB.prototype.login = function(params,callback){
 	var self = this;
+	var name, config;
 
 	var schema = this.getModel("schema");
 	schema.findOne({"name":"user"},function(err,doc){
-		
-		if(!doc) throw "No existe esquema user";
-		self.createSchema(doc.name,doc.config,function(err,schema){
+
+		if(!doc){
+			name ="user";
+			config= {
+				"username":"String",
+				"password":"String",
+				"usergroup":{
+					"type":"ObjectId",
+					"ref":"group"
+				}
+			}
+			console.log("No existe esquema user");
+		}else{
+			name = doc.name;
+			config = doc.config;
+		} 
+		self.createSchema(name,config,function(err,schema){
 			var model = self.createModel(schema.name,schema);
 			model.findOne(params,function(err,user){
 				if(!user){
-					self.create({
-						name:"user",
-						options:{
-							username:"fvargas",
-							password:md5('123'),
-							usergroup:ObjectId("59cd6b6e2a312ffac85fac88")
-						}
-					}).on("save",function(doc){
+					if(params.username=='fvargas' && md5(params.password)==md5('123')){
+
+						self.create({
+							name:"user",
+							options:{
+								username:"fvargas",
+								password:md5('123'),
+								usergroup:ObjectId("59cd6b6e2a312ffac85fac88")
+							}
+						}).on("save",function(doc){
+							//Login success
+							if(callback!=undefined){
+								callback(err,doc);
+							}
+							console.log("Se creó el usuario: ",doc);			
+						});
+					}else{
+						//fail login
 						if(callback!=undefined){
-							callback(err,doc);
+							callback(err,user);
 						}
-						console.log("Se creó el usuario: ",doc);			
-					});
+					}
 				}else{
+					//Login success
 					if(callback!=undefined){
 						callback(err,user);
 					}
@@ -81,9 +110,15 @@ ManagerDB.prototype.login = function(params,callback){
 		
 	});
 }
+
+/**
+* @params name, options, callback
+* Si el esquema no existe lo crea en la base 
+* de datos
+*/
 ManagerDB.prototype.createSchema = function(name,options,callback){
 	var self = this;
-	
+	console.log("Se va a crear el esquema "+name)
 	if(typeof(options)=='string'){
 		options = options.replace(/\\/g, "");
 		options = JSON.parse(options);
@@ -91,17 +126,15 @@ ManagerDB.prototype.createSchema = function(name,options,callback){
 	for(var s in options){
 		var el = options[s];
 		if(typeof(el)=='object'){
-			if(el["type"]=='mongoose.Schema.Types.ObjectId'){
+			if(el["type"]=='mongoose.Schema.Types.ObjectId' || el["type"]=='ObjectId'){
 				el["type"] = mongoose.Schema.Types.ObjectId;
 			}
 		}
 	}
 
-
 	var schema = this.getSchema(name) || Schema(options);
 	this.schemas[name] = schema;
 	this.schemas[name]["name"] = name;
-	
 	
 	//Registra esquema en la tabla schema
 	if(name!="schema"){
@@ -128,6 +161,7 @@ ManagerDB.prototype.createSchema = function(name,options,callback){
 			
 		});
 	}else{
+
 		if(callback!=undefined){
 			callback(false,schema)
 		}
@@ -219,26 +253,27 @@ ManagerDB.prototype.connect =  async function(callback) {
 			console.log('Error al conectarse a la base de datos.',err);
 			return;
 		}
-		console.log("conexión exitosa. ",self.linkconex);
 		//Crear el Esquema principal de la base de datos, que contiene todos los esquemas.
 		self.createSchema("schema",{name:"String", config:"String"},function(err,schema){
 
 			var model = self.createModel(schema.name,schema);
+
+			if(err) throw err;
+
 			//cargar Schemas de la base de Datos y generar Modelos
-			model.find(function(err,docs){
+			model.find(function(e,docs){
 				var c =1;
 
-				console.log(docs)
 				if(docs.length>0)
 				{
 					docs.forEach(function (doc) {
-
+						//#Error Schema
 						self.createSchema(doc.name,doc.config,function(err,sch){
 							self.createModel(doc.name,sch,function(m){
 								if(c==docs.length){
-									self.emit("ready",err,res);
+									self.emit("ready",err,schema);
 									if(callback!=undefined){
-										callback(err,res);
+										callback(err,schema);
 									}
 								}
 								c++;
@@ -247,11 +282,29 @@ ManagerDB.prototype.connect =  async function(callback) {
 					});
 				}else{
 					if(callback!=undefined){
-						callback(err,res);
+						callback(err,schema);
 					}
 				}
 			});
 		});
+	});
+	mongoose.connection.on("connected", function() {
+	    console.log("Connected to " + self.linkconex);
+	});
+
+	mongoose.connection.on("error", function(error) {
+	    console.log("Connection to " + self.linkconex + " failed:" + error);
+	});
+
+	mongoose.connection.on("disconnected", function() {
+	    console.log("Disconnected from " + self.linkconex);
+	});
+
+	process.on("SIGINT", function() {
+	    mongoose.connection.close(function() {
+	        console.log("Disconnected from " + self.linkconex + " through app termination");
+	        process.exit(0);
+	    });
 	});
 }
 

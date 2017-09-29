@@ -8,7 +8,8 @@ Ext.define('Electron.view.login.LoginController', {
     	        waitMsg: 'Procesando solicitud...',
     	        success: function(f, action) {
     	            var res = action.result;
-    	            localStorage.user_id =res.user_id;
+                    console.log(res);
+    	            localStorage.user_id =res.user._id;
     	            location.reload();
     	        },
     	        failure: function(f, action) {
