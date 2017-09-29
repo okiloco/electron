@@ -22,6 +22,7 @@
     "mongoose": "^4.11.11",
     "node-rtsp-stream": "0.0.3",
     "path": "^0.12.7",
+    "remote": "^0.2.6",
     "request": "^2.81.0",
     "rtsp-recorder": "0.0.3",
     "videoshow": "^0.1.11"

@@ -2,6 +2,9 @@ const express =require('express');
 var md5 = require("md5");
 var fs = require("fs");
 var path = require("path");
+var remote = require('remote');
+const main = remote.require('../index.js');
+
 /*var Model = require("./models/Model");
 const db = new Model({
 	dbname:'falcon-db'
@@ -50,7 +53,7 @@ db.connect((err,res)=>{
 			route = require('./controllers/'+file);
 			route.controller(app,db);
 		});
-
+		console.log(main.canGame());
 	  	console.log("Arranco el Server localhost:"+port);
     });
 });

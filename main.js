@@ -28,7 +28,9 @@ function createWindow(){
 
     //console.log(win.webContents);
 }
-exports.canGame = () => {
+
+
+exports.canGame = function(){
     return "getGamepads" in win;
 }
 app.on("ready",createWindow)
