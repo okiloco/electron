@@ -49,50 +49,48 @@ ManagerDB.prototype.login = function(params,callback){
 	var self = this;
 
 	var schema = this.getModel("schema");
-	schema.findOne({"name":"user"},function(err,user_schema){
-
+	schema.findOne({"name":"user"},function(err,doc){
 		
-
-		var user = self.createSchema("user",JSON.parse(user_schema.config),function(err,schema){
-
+		self.createSchema(doc.name,doc.config,function(err,schema){
 			var model = self.createModel(schema.name,schema);
 			model.findOne(params,function(err,user){
 				if(!user){
-
-
 					self.create({
 						name:"user",
 						options:{
 							username:"fvargas",
 							password:md5('123'),
-							usergroup: ObjectId("59cd6b6e2a312ffac85fac88")
+							usergroup:ObjectId("59cd6b6e2a312ffac85fac88")
 						}
 					}).on("save",function(doc){
-						console.log("Se creó el usuario: ",doc);
 						if(callback!=undefined){
 							callback(err,doc);
-						}			
+						}
+						console.log("Se creó el usuario: ",doc);			
 					});
 				}else{
 					if(callback!=undefined){
-						callback(false,user);
+						callback(err,user);
 					}
 				}
-				
-				
 			});
+
 		});
+
+		
 	});
 }
-ManagerDB.prototype.createSchema = async function(name,options,callback){
+ManagerDB.prototype.createSchema = function(name,options,callback){
 	var self = this;
-
 	
-
+	if(typeof(options)=='string'){
+		options = options.replace(/\\/g, "");
+		options = JSON.parse(options);
+	}
 	for(var s in options){
 		var el = options[s];
 		if(typeof(el)=='object'){
-			if(el["type"]=='mongoose.Schema.Types.ObjectId' || 'ObjectId'){
+			if(el["type"]=='mongoose.Schema.Types.ObjectId'){
 				el["type"] = mongoose.Schema.Types.ObjectId;
 			}
 		}
@@ -227,10 +225,7 @@ ManagerDB.prototype.connect =  async function(callback) {
 				var c =1;
 				docs.forEach(function (doc) {
 
-					var config = doc.config;
-					config = config.replace(/\\/g, "");
-					config = JSON.parse(config);
-					self.createSchema(doc.name,config,function(err,sch){
+					self.createSchema(doc.name,doc.config,function(err,sch){
 						self.createModel(doc.name,sch,function(m){
 							if(c==docs.length){
 								self.emit("ready",err,res);

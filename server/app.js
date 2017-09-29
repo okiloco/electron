@@ -36,7 +36,7 @@ const db = ManagerDB.createManagerDB({
 
 app.use("/public",express.static("public"));
 app.use("/controllers",express.static("controllers"));
-app.use("/app",session_middleware);
+// app.use("/app",session_middleware);
 app.use("/app",routes(app,db));
 
 var port = process.env.PORT || 3000;
