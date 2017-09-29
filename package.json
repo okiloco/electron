@@ -4,52 +4,70 @@
   "main": "./index.js",
   "devDependencies": {
     "electron": "latest",
-    "electron-builder": "^19.27.3"
+    "electron-builder": "^19.27.3",
+    "electron-rebuild": "^1.6.0"
   },
-  "homepage":"./index.html",
+  "homepage": "./index.html",
   "dependencies": {
-   
+    "body-parser": "^1.18.1",
+    "buffertools": "~2.1.0",
+    "dateformat": "^3.0.2",
+    "express": "^4.15.4",
+    "express-fileupload": "^0.2.0",
+    "express-session": "^1.15.5",
+    "ffmpeg": "0.0.4",
+    "fluent-ffmpeg": "^2.1.2",
+    "md5": "^2.2.1",
+    "mjpeg-consumer": "^1.1.0",
+    "mongoose": "^4.11.11",
+    "node-rtsp-stream": "0.0.3",
+    "path": "^0.12.7",
+    "request": "^2.81.0",
+    "rtsp-recorder": "0.0.3",
+    "videoshow": "^0.1.11"
   },
   "scripts": {
     "start": "electron .",
+    "postinstall": "electron-rebuild",
+    "electron-rebuild": "electron-rebuild",
     "pack": "build --dir",
-    "dist":"build",
+    "dist": "build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
     "electron": "electron ."
   },
-  "author":{
-    "name":"Fabian Vargas",
-    "email":"f_varga@hotmail.com"
-   },
+  "author": {
+    "name": "Fabian Vargas",
+    "email": "f_varga@hotmail.com"
+  },
   "description": "IpCam Desktop",
-  "license":"MIT",
+  "license": "MIT",
   "build": {
-	  "appId": "enupal-electronv1",
-	  "asar": true,
-	  "dmg": {
-	    "contents": [
-	      {
-	        "x": 110,
-	        "y": 150
-	      },
-	      {
-	        "x": 240,
-	        "y": 150,
-	        "type": "link",
-	        "path": "/Applications"
-	      }
-	    ]
-	  },
-	  "linux": {
-	    "target": [
-	      "AppImage",
-	      "deb"
-	    ]
-	  },
-	  "win": {
-	    "target": "NSIS",
-	    "icon": "build/icon.ico"
-	  }
-	}
+    "appId": "enupal-electronv1",
+    "asar": true,
+    "dmg": {
+      "contents": [
+        {
+          "x": 110,
+          "y": 150
+        },
+        {
+          "x": 240,
+          "y": 150,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ]
+    },
+    "win": {
+      "target": "NSIS",
+      "icon": "build/icon.ico"
+    }
+  }
 }

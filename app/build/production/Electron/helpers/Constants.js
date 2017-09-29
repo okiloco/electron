@@ -1,0 +1,1 @@
+Ext.define("Helper.Constants",{alternateClassName:"Constants",singleton:true,BASE_PATH:"http://localhost:9001/",IP_CAMERA:"http://192.168.1.155/",URL_LOGIN:this.BASE_PATH+"login",URL_VIEWER:this.IP_CAMERA+"/mjpg/video.mjpg"});

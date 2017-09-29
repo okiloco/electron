@@ -1,0 +1,30 @@
+{
+  "name": "backoffice-mv",
+  "version": "1.0.0",
+  "description": "Backoffice Movil",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Fabian Vargas Fontalvo",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.18.1",
+    "express": "^4.15.4",
+    "express-fileupload": "^0.2.0",
+    "express-session": "^1.15.5",
+    "ffmpeg": "0.0.4",
+    "fluent-ffmpeg": "^2.1.2",
+    "md5": "^2.2.1",
+    "mjpeg-consumer": "^1.1.0",
+    "mongoose": "^4.11.11",
+    "node-rtsp-stream": "0.0.3",
+    "path": "^0.12.7",
+    "request": "^2.81.0",
+    "rtsp-recorder": "0.0.3",
+    "videoshow": "^0.1.11"
+  },
+  "devDependencies": {
+    "nodemon": "^1.12.1"
+  }
+}

@@ -1,28 +1,32 @@
 const {app, BrowserWindow} = require('electron')
 const path = require('path')
 const url = require('url')
-
+require('./server/app');
 let win
 function createWindow(){
-	win = new BrowserWindow({width:800,height:600, title:'SnapShot Stream', icon:__dirname+'/assests/icon.png'})
+	win = new BrowserWindow({width:1280,height:720, title:'SnapShot Stream', icon:__dirname+'/assests/icon.png'})
 
 	win.loadURL(url.format({
-		pathname:path.join(__dirname,'./index.html'),
+		pathname:path.join(__dirname,'/app/index.html'),
 		protocol:'file:',
 		slashes:true
-	}))
-	//win.loadURL('http://localhost:3000');
+	}));
+	// win.loadURL('http://localhost:1841');
 
+	//Abrir inspector de elementos
 	win.webContents.openDevTools();
 
 	win.on("closed",()=>{
 		win = null;
 	})
 
+	const ses = win.webContents.session;
+	
+
     var hasGP = false;
     var repGP;
 
-    console.log(win.webContents);
+    //console.log(win.webContents);
 }
 exports.canGame = () => {
     return "getGamepads" in win;

@@ -42,6 +42,11 @@ function Camera(options) {
 
   this.cameraURI = 'http://' + this.address + ':' + this.port;
   this.cameraIP = this.address;
+ 
+  for(var s in options){
+    this[s]=options[s];
+  }
+
   this.auth = {
     'user': this.username,
     'pass': this.password,
@@ -59,6 +64,18 @@ function dateString(date){
     var dt = date || (new Date());
     return [dt.getDate(), dt.getMonth(), dt.getFullYear()].join('-')+' '
         +[dt.getHours(), dt.getMinutes(), dt.getSeconds()].join('-');
+}
+
+
+/**
+ * Date to string
+ * @param date {Date|undefined}
+ * @returns {string}
+ */
+Camera.prototype.dateString = function(date){
+  var dt = date || (new Date());
+  return [dt.getDate(), dt.getMonth(), dt.getFullYear()].join('-')+' '
+    +[dt.getHours(), dt.getMinutes(), dt.getSeconds()].join('-');
 }
 
 Camera.prototype.generateGET = function(options) {
@@ -79,6 +96,8 @@ Camera.prototype.generateGET = function(options) {
   return arguments;
 };
 
+
+
 Camera.prototype.requestImage = function(options, callback) {
   var path = this.cameraURI;
   if (typeof options === 'object') {
@@ -95,6 +114,26 @@ Camera.prototype.requestImage = function(options, callback) {
   }
   request.get(path, req_opt, function(err, response, body) {
     callback(err, body);
+  });
+};
+
+//Fachada para Imagenes
+Camera.prototype.captureImage = function(options,callback){
+
+  this.requestImage(options,function(err,data){
+    var path = this.folder+''+this.prefix;
+
+    console.log(path);
+    var filename = path+''+dateString()+'.jpg';
+
+    if (!fs.existsSync(path)) {
+      fs.mkdirSync(path);
+    }
+
+    callback(err,data);
+    fs.writeFile(filename, data, function(err) {
+          if (err) throw err;
+    });
   });
 };
 

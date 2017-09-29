@@ -1,0 +1,1 @@
+db.schemas.insert({ "name" : "user", "config" : "{\"username\": \"String\",\"password\": \"String\",\"usergroup\": {\"type\": \"mongoose.Schema.Types.ObjectId\",\"ref\": \"group\"}}" })
