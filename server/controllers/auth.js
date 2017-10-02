@@ -17,7 +17,10 @@ module.exports.controller = function(app,db){
 			},'_id username usergroup')
 			.populate('usergroup')
 			.exec(function(err,user){
-				if(user!=null){req.session.user_id =user._id;}
+				if(user!=null){
+					req.session.user_id =user._id;
+					res.locals.user = user;
+				}
 				res.send(JSON.stringify({
 					success:(user!=null),
 					msg:(user!=null)?'Acceso permitido.':'Usuario o contraseña son inválidos.',

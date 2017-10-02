@@ -161,7 +161,11 @@ Ext.define('Electron.view.ptz.PTZ',{
                         }
                     ]
                 }
-            ]
+            ],
+            listeners:{
+                afterrender:function(self){
+                }
+            }
         });
 
         me.callParent(arguments);

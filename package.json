@@ -35,7 +35,8 @@
     "dist": "build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
-    "electron": "electron ."
+    "electron": "electron .",
+    "serv":"node ./server/app.js"
   },
   "author": {
     "name": "Fabian Vargas",

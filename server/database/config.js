@@ -1,10 +1,10 @@
 module.exports ={
-	default:{
+	"default":{
 		dbname:'falcon-db',
 		host:'localhost',
 		port:'27017'
 	},
-	debug:{
+	"debug":{
 		dbname:'falcon-db-dev',
 		host:'localhost',
 		port:'27017'

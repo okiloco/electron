@@ -16,7 +16,6 @@ var app = express();
 const mongoose = require("mongoose");
 mongoose.Promise = global.Promise;
 
-var User = require("./models/usuario").Usuario;
 
 //Middlewares
 app.use(bodyParser.json());//para peticiones aplication/json
@@ -28,7 +27,7 @@ app.use(session({
 }));
 
 //Conectarse a base de datos
-const ManagerDB = require("./js/ManagerDB");
+const ManagerDB = require("./database/ManagerDB");
 const db = ManagerDB.createManagerDB({
 	active_group:'default'
 });
@@ -36,13 +35,16 @@ const db = ManagerDB.createManagerDB({
 
 app.use("/public",express.static("public"));
 app.use("/controllers",express.static("controllers"));
-app.use("/app",session_middleware);
+// app.use("/app",session_middleware);
 app.use("/app",routes(app,db));
 
 var port = process.env.PORT || 3000;
 db.connect((err,schema)=>{
-	console.log(">1",err,schema.name);
 	
+	db.on("prebuild",(name,config)=>{
+		console.log("prebuild:: ",name,config);
+	});
+
 	app.listen(port,function(){
 		
 		//Cargar Controladores 

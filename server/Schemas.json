@@ -1,1 +1,17 @@
-db.schemas.insert({ "name" : "user", "config" : "{\"username\": \"String\",\"password\": \"String\",\"usergroup\": {\"type\": \"mongoose.Schema.Types.ObjectId\",\"ref\": \"group\"}}" })
+db.schemas.insert({ "name" : "user", "config" : "{\"username\": \"String\",\"password\": \"String\",\"usergroup\": {\"type\": \"ObjectId\",\"ref\": \"group\",\"modules\":[{\"module\":{\"type\":\"ObjectId\",\"name\":\"String\", \"ref\":\"module\"}}]}}"})
+
+
+Module
+{"name": "String","config": "String","estado": {"type": "Number","default": 1}}
+
+Modulos
+{"title": "PTZ","config": {"className":"Electron.view.ptz.PTZ","alias":"ptz","iconCls":"fa fa-folder"}}
+User
+{"username": "String","password": "String","usergroup": {"type": "ObjectId","ref": "group"}}
+
+Group
+{\"name\":\"String\",\"config\":{\"name\":\"String\"},\"modules\":[{\"module\":{\"type\":\"ObjectId\",\"name\":\"String\", \"ref\":\"module\"}}]}
+{\"name\":\"String\", \"modules\":[{\"type\":\"ObjectId\",\"ref\":\"module\"}]}
+
+User
+{"name":"user","config":{"username":"String","password":"String","usergroup":{"type":"ObjectId","ref":"group"}}}

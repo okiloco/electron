@@ -76,7 +76,7 @@ Ext.define('Electron.view.login.Login',{
                     //iconCls:'save-icon',
                     handler: 'acceder'
                 }
-            ]
+            ]            
         }
     ]
 });
