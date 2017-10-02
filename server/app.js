@@ -29,22 +29,24 @@ app.use(session({
 //Conectarse a base de datos
 const ManagerDB = require("./database/ManagerDB");
 const db = ManagerDB.createManagerDB({
-	active_group:'default'
+	active_group:'default',
+	virtuals:{
+		"schema":{
+			set:function(){},
+			get:function(){}
+		}
+	}
 });
 
 
 app.use("/public",express.static("public"));
 app.use("/controllers",express.static("controllers"));
-// app.use("/app",session_middleware);
+app.use("/app",session_middleware);
 app.use("/app",routes(app,db));
 
 var port = process.env.PORT || 3000;
 db.connect((err,schema)=>{
 	
-	db.on("prebuild",(name,config)=>{
-		console.log("prebuild:: ",name,config);
-	});
-
 	app.listen(port,function(){
 		
 		//Cargar Controladores 

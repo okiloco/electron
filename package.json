@@ -22,6 +22,8 @@
     "mongoose": "^4.11.11",
     "node-rtsp-stream": "0.0.3",
     "path": "^0.12.7",
+    "pluralize": "^7.0.0",
+    "pluralize-es": "^1.0.0",
     "remote": "^0.2.6",
     "request": "^2.81.0",
     "rtsp-recorder": "0.0.3",
@@ -36,7 +38,7 @@
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
     "electron": "electron .",
-    "serv":"node ./server/app.js"
+    "serv": "node ./server/app.js"
   },
   "author": {
     "name": "Fabian Vargas",

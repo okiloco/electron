@@ -20,6 +20,8 @@ module.exports.controller = function(app,db){
 				if(user!=null){
 					req.session.user_id =user._id;
 					res.locals.user = user;
+					/*db.set("user_id",user._id);
+					db.set("_user",user);*/
 				}
 				res.send(JSON.stringify({
 					success:(user!=null),
