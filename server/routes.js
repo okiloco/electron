@@ -2,24 +2,12 @@ var express = require("express");
 var router = express.Router();
 var dateFormat = require('dateformat');
 var streaming = require("./js/videoStreaming");
-var str2json = require("./helpers/str2json");
+var pluralize = require("./helpers/helper").pluralize;
 var md5 = require('md5');
-var pluralizeES= require('pluralize-es');
-var pluralizeEN = require('pluralize');
+
 module.exports = function(app,db){
 
-	function pluralize(lang,val){
-		var _val = val;
-		switch(lang){
-			case "es":
-				_val=pluralizeES(_val);
-			break;
-			case "en":
-				_val=pluralizeEN(_val);
-			break;
-		}
-		return _val;
-	}
+	
 	var camera = streaming({
 		id_dispositivo:2,
 		address: '192.168.1.155',
@@ -71,7 +59,6 @@ module.exports = function(app,db){
 				}
 			});
 		});
-		//Delete
 		router.route("/"+name+"/delete/:id").get(function(req,res){
 			db[name].remove(req.params,function(msg,doc){
 				res.send(JSON.stringify({
@@ -187,9 +174,14 @@ module.exports = function(app,db){
 		});
 		router.route("/schema/delete").get(function(req,res){
 			var model = db.getModel("schema");
-
-			model.remove(req.query,function(err,data){
-				res.send(JSON.stringify(data));
+			//Elimina el registro de collection schema
+			model.schema.remove(req.query,function(err,doc){
+				console.log(err,doc);
+				db.refresh(function(){
+					//Eliminar colection ~ tabla referente al esquema.
+					res.send(JSON.stringify(doc));
+					db.getModel(doc.name).collection.drop();
+				});
 			});
 		});
 	});
@@ -311,6 +303,8 @@ module.exports = function(app,db){
 		});
 	});
 
+	
+	
 
 	//DESPLIEGUE
 	router.get("/image/new",(req,res)=>{

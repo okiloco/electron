@@ -30,16 +30,24 @@ app.use(session({
 const ManagerDB = require("./database/ManagerDB");
 const db = ManagerDB.createManagerDB({
 	active_group:'default',
-	virtuals:{
-		"schema":{
-			set:function(){},
-			get:function(){}
-		}
-	}
+	url:'./server/database/config.json'
 });
 
 
+app.get("/seting",function(req,res){
+
+	send("vea")
+
+});
+
+app.get("/refresh",function(req,res){
+	db.refresh(function(err,schema){
+		res.send("Aplicaión actualizada.");
+	});
+});
+
 app.use("/public",express.static("public"));
+app.use("/config",express.static("config"));
 app.use("/controllers",express.static("controllers"));
 app.use("/app",session_middleware);
 app.use("/app",routes(app,db));

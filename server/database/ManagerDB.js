@@ -8,10 +8,16 @@ const mongoose = require("mongoose");
 var md5 = require('md5');
 mongoose.Promise = global.Promise;
 var ObjectId = mongoose.Types.ObjectId;
+
+var fs = require("fs");
+var path = require("path");
+
 // var Schema = mongoose.Schema;
-var config = require("./config");
+var config = require("./config.json");
 var str2json = require("../helpers/str2json");
 var Helper = require("../helpers/helper");
+
+var jsonfile = require("jsonfile");
 exports.createManagerDB = function(options,callback) {
   return new ManagerDB(options,callback);
 };
@@ -26,23 +32,28 @@ exports.createManagerDB = function(options,callback) {
 */
 function ManagerDB(options){
 
+	var self = this;
+
+	this.active_group = options.active_group;
+	this.url = options.url;
 	//"mongodb://localhost:27017/canguro-app"
-	this.active_group = config[options.active_group];
-	this.models = {};
-	this.schemas = {};
-	this.dbname = this.active_group.dbname;
+	this.setConfig = function(config){
+		console.log("setConfig:: ",config,self.active_group);
+		self.active_group = config[options.active_group];
+		self.models = {};
+		self.schemas = {};
+		self.dbname = self.active_group.dbname;
 
-	this.host = this.active_group.host;
-	this.port = this.active_group.port;
+		self.host = self.active_group.host;
+		self.port = self.active_group.port;
 
-	this.linkconex = "mongodb://"+this.host+':'+this.port+'/'+this.dbname;
-	this.conn = mongoose.connection;
-
-	this.virtuals = options.virtuals;
-	this.on("prebuild",function(name,config){
-		console.log("prebuild: ",name,config);
-	});
+		self.linkconex = "mongodb://"+self.host+':'+self.port+'/'+self.dbname;
+		self.conn = mongoose.connection;
+	}
+	self.virtuals = options.virtuals;
+	self.emit("loaded",self,config);
 }
+
 /**
 * @params: name,schema
 * Crea una instancia de Model de mongoose
@@ -51,6 +62,7 @@ function ManagerDB(options){
 + schema: Object instancia de mongoose.Schema
 */
 function Model(name,schema){
+	console.log("new model ",name);
 	var model = mongoose.model(name,schema);
 	
 	for(var s in schema){
@@ -60,7 +72,6 @@ function Model(name,schema){
 	model["getSchema"] =  function(){
 		return schema;
 	}
-
 	return model;
 }
 /**
@@ -389,14 +400,19 @@ ManagerDB.prototype.createSchema = function(name,options,callback){
 					lang:"es", 
 					options:{"name":name,"config":JSON.stringify(options)}
 				},function(){
-					if(callback!=undefined){
-						callback((!doc),schema)
-					}
+					//Actualizar los esquemas de la base de datos
+					self.refresh(function(){
+						/*Event: Emite el evento Register con nombre del Schema*/
+						self.emit(name,schema);
+						self.emit("register",name,schema);
+
+						console.log("Se registró el esquema: ",name+".")
+						if(callback!=undefined){
+							callback((!doc),schema)
+						}
+					});
 				});
-				/*Event: Emite el evento Register con nombre del Schema*/
-				self.emit(name,schema);
-				self.emit("register",name,schema);	
-				console.log("Se registró el esquema: ",name+".")
+				
 			}else{
 				//Establecer el lenguaje del Schema
 				schema["lang"] = (doc.lang!=undefined)?doc.lang:undefined;
@@ -411,12 +427,12 @@ ManagerDB.prototype.createSchema = function(name,options,callback){
 					
 		});
 	}else{
-		/*Event: Emite el evento Register con nombre del Schema*/
-		self.emit(name,schema);
-		self.emit("register",name,schema);
 		if(callback!=undefined){
 			callback(false,schema)
 		}
+		/*Event: Emite el evento Register con nombre del Schema*/
+		self.emit(name,schema);
+		self.emit("register",name,schema);
 	}
 	return schema;
 }
@@ -428,6 +444,7 @@ ManagerDB.prototype.createSchema = function(name,options,callback){
 * en la API de mongoose.
 */
 ManagerDB.prototype.createModel = function(name,schema,callback){
+	console.log("\t-->",(this.getModel(name)==undefined))
 	var model = this.getModel(name) || new Model(name,schema);
 	this.models[name] = model; 
 	this.models[name]["name"] = name;
@@ -464,6 +481,60 @@ ManagerDB.prototype.create = function({name,options},callback){
  	});
 	return instance;
 }
+
+ManagerDB.prototype.load =  function(callback) {
+	var self = this;
+	jsonfile.readFile(self.url,function(err,config){
+		self.setConfig(config);
+		if(typeof(callback)!=undefined) callback();
+	});
+}
+ManagerDB.prototype.register =  function(callback) {
+	var self = this;
+	//Crear el Esquema principal de la base de datos, que contiene todos los esquemas.
+	self.createSchema("schema",{name:"String",lang:"String", config:"String"},function(err,schema){
+
+		var model = self.createModel(schema.name,schema);
+
+		if(err) throw err;
+
+		//cargar Schemas de la base de Datos y generar Modelos
+		model.find(function(e,docs){
+			if(docs.length>0)
+			{
+				docs.forEach(function (doc,index) {
+					//#Error Schema
+					self.createSchema(doc.name,doc.config,function(err,sch){
+						self.createModel(doc.name,sch,function(m){
+							if(index==docs.length - 1){
+								self.emit("ready",err,schema);
+								if(callback!=undefined){
+									callback(err,schema);
+								}
+							}
+						});
+					});
+				});
+			}else{
+				if(callback!=undefined){
+					callback(err,schema);
+				}
+			}
+		});
+	});
+}
+ManagerDB.prototype.refresh =  function(callback) {
+	var self = this;
+
+	//Registrar los schemas de la base de datos
+	self.register(function(){
+		console.log("refresh.");
+		if(callback!=undefined){
+			callback();
+		}
+	});
+}
+
 /**
 * @params: callback
 * Conecta con la base de datos MongoDB
@@ -479,45 +550,19 @@ ManagerDB.prototype.create = function({name,options},callback){
 * config: Almacena un String en formato Json, con la
 * configuración del schema.
 */
-ManagerDB.prototype.connect =  async function(callback) {
+ManagerDB.prototype.connect =  function(callback) {
 	var self = this;
-	mongoose.connect(this.linkconex,(err,res)=>{
-		if(err){
-			console.log('Error al conectarse a la base de datos.',err);
-			return;
-		}
-		//Crear el Esquema principal de la base de datos, que contiene todos los esquemas.
-		self.createSchema("schema",{name:"String",lang:"String", config:"String"},function(err,schema){
 
-			var model = self.createModel(schema.name,schema);
-
-			if(err) throw err;
-
-			//cargar Schemas de la base de Datos y generar Modelos
-			model.find(function(e,docs){
-				if(docs.length>0)
-				{
-					docs.forEach(function (doc,index) {
-						//#Error Schema
-						self.createSchema(doc.name,doc.config,function(err,sch){
-							self.createModel(doc.name,sch,function(m){
-								if(index==docs.length - 1){
-									self.emit("ready",err,schema);
-									if(callback!=undefined){
-										callback(err,schema);
-									}
-								}
-							});
-						});
-					});
-				}else{
-					if(callback!=undefined){
-						callback(err,schema);
-					}
-				}
-			});
+	self.load(function(){
+		mongoose.connect(self.linkconex,(err,res)=>{
+			if(err){
+				console.log('Error al conectarse a la base de datos.',err);
+				return;
+			}
+			//Registrar los schemas de la base de datos
+			self.register(callback);
+			return self;
 		});
-		return self;
 	});
 	
 	mongoose.connection.on("connected", function() {
@@ -559,5 +604,5 @@ ManagerDB.prototype.getSchema = function(name){
 * Devuelve un Modelo registrado en la colección models de ManagerDB.
 */ 
 ManagerDB.prototype.getModel = function(name){
-	return this.models[name];
+	return this[name];
 }
